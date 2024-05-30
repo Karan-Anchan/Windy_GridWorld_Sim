@@ -43,3 +43,28 @@ def plot_running_average(q_learning_rewards, sarsa_rewards, expected_sarsa_rewar
     plt.grid(True)
     plt.savefig('q_learning_vs_sarsa_vs_expected_sarsa_running_avg.png')
     plt.show()
+    
+def plot_zoomed_rewards(q_learning_rewards, sarsa_rewards, expected_sarsa_rewards, zoom_start, zoom_end):
+    
+    """
+    Plot the zoomed average cumulative rewards for Q-learning, SARSA, and Expected SARSA over episodes.
+
+    Args:
+        q_learning_rewards (list): Average cumulative rewards for Q-learning.
+        sarsa_rewards (list): Average cumulative rewards for SARSA.
+        expected_sarsa_rewards (list): Average cumulative rewards for Expected SARSA.
+        zoom_start (int): Start episode for zooming.
+        zoom_end (int): End episode for zooming.
+    """
+    
+    plt.figure(figsize=(12, 6))
+    plt.plot(range(zoom_start, zoom_end), q_learning_rewards[zoom_start:zoom_end], label='Q-learning')
+    plt.plot(range(zoom_start, zoom_end), sarsa_rewards[zoom_start:zoom_end], label='SARSA')
+    plt.plot(range(zoom_start, zoom_end), expected_sarsa_rewards[zoom_start:zoom_end], label='Expected SARSA')
+    plt.xlabel('Episode')
+    plt.ylabel('Average Cumulative Reward')
+    plt.title(f'Q-learning vs SARSA vs Expected SARSA: Average Cumulative Rewards (Episodes {zoom_start}-{zoom_end})')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('zoomed_q_learning_vs_sarsa_vs_expected_sarsa_rewards.png')
+    plt.show()
