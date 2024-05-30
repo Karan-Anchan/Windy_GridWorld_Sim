@@ -68,7 +68,7 @@ To execute the simulation and see the algorithms in action, run:
 python main.py
 ```
 
-Visualizations 📊
+## Visualizations 📊
 
 ### Running Average of Cumulative Rewards
 
@@ -94,5 +94,13 @@ This plot focuses on a specific range of episodes to highlight where Q-learning 
 
   - **Q-learning**: Shows clear superiority in certain ranges of episodes, indicating faster convergence and better policy optimization.
   - **SARSA and Expected SARSA**: Both algorithms show competitive performance but tend to converge slower compared to Q-learning.
+ 
+## Contributing 🤝
+
+Feel free to fork this project. Enjoy exploring reinforcement learning with this 10-arm testbed simulation! 🌟
+
+## License 📄
+
+This project is open-source and available under the MIT License.
 
 ---
