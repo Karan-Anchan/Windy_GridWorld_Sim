@@ -1,3 +1,6 @@
+
+---
+
 # Windy Gridworld Simulation 🌍💨
 
 ## Overview 📖
@@ -13,31 +16,28 @@ Welcome to the Windy Gridworld Simulation project! This repository showcases an 
 
 ## Environment Details 🌐
 
-### States
+### States 📍
 
 Each position in a 10x7 grid is represented as a state (x, y), where:
-
 - `x` ranges from 0 to 9
 - `y` ranges from 0 to 6
 
-### Actions
+### Actions 🔀
 
 The agent can move in four directions:
-
 - 'Up' 🡑
 - 'Down' 🡓
 - 'Left' 🡐
 - 'Right' 🡒
 
-### Wind Strength
+### Wind Strength 💨
 
 Certain columns have wind that pushes the agent up by a fixed number of rows regardless of the agent's chosen action:
-
 - Columns 3, 4, 5 have wind strength 1.
 - Columns 6, 7 have wind strength 2.
 - Column 8 has wind strength 1.
 
-### Rewards
+### Rewards 🎁
 
 - **Terminal State Reward**: The agent receives a reward of 0 upon reaching the terminal state located at (7, 3).
 - **Step Penalty**: To encourage efficiency, a penalty of -1 is applied for each movement.
@@ -51,7 +51,6 @@ Certain columns have wind that pushes the agent up by a fixed number of rows reg
 ## Setup & Installation 🛠️
 
 Ensure Python is installed on your system, along with the following packages:
-
 - `numpy`
 - `matplotlib`
 
