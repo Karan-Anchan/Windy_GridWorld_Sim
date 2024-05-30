@@ -13,16 +13,16 @@ def main():
     env = WindyGridworld(width, height, wind, start_state, goal_state)
 
     # Run Q-learning, SARSA, and Expected SARSA algorithms
-    q_learning_rewards = q_learning(env, episodes=1000, trials=50)
-    sarsa_rewards = sarsa(env, episodes=1000, trials=50)
-    expected_sarsa_rewards = expected_sarsa(env, episodes=1000, trials=50)
+    q_learning_rewards = q_learning(env, episodes=550, trials=1000)
+    sarsa_rewards = sarsa(env, episodes=550, trials=1000)
+    expected_sarsa_rewards = expected_sarsa(env, episodes=550, trials=1000)
 
     # Visualize the running average of cumulative rewards
     plot_running_average(q_learning_rewards, sarsa_rewards, expected_sarsa_rewards)
 
     # Zoom in on the area where Q-learning shows superiority over SARSA and Expected SARSA
-    zoom_start = 200
-    zoom_end = 400
+    zoom_start = 350
+    zoom_end = 550
     plot_zoomed_rewards(q_learning_rewards, sarsa_rewards, expected_sarsa_rewards, zoom_start, zoom_end)
 
 if __name__ == "__main__":
