@@ -16,6 +16,7 @@ class WindyGridworld:
     """
     
     def __init__(self, width, height, wind, start_state, goal_state):
+        
         self.width = width
         self.height = height
         self.wind = wind
@@ -28,3 +29,33 @@ class WindyGridworld:
             'left': (-1, 0),
             'right': (1, 0)
         }
+        
+    def step(self, state, action):
+        
+        """
+        Take a step in the environment.
+        
+        Args:
+            state (tuple): Current state (x, y).
+            action (str): Action to take.
+        
+        Returns:
+            next_state (tuple): Next state (x, y).
+            reward (int): Reward received.
+        """
+        
+        x, y = state
+        dx, dy = self.action_effects[action]
+
+        # Apply action
+        x = min(max(x + dx, 0), self.width - 1)
+        y = min(max(y + dy, 0), self.height - 1)
+
+        # Apply wind
+        y = min(max(y - self.wind[x], 0), self.height - 1)
+
+        # Check goal
+        if (x, y) == self.goal_state:
+            return (x, y), 0  # Goal reached, no penalty
+        else:
+            return (x, y), -1  # Step penalty
