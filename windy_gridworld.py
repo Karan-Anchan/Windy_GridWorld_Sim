@@ -59,3 +59,9 @@ class WindyGridworld:
             return (x, y), 0  # Goal reached, no penalty
         else:
             return (x, y), -1  # Step penalty
+        
+    def reset(self):
+        
+        """Reset the environment to the start state."""
+        
+        return self.start_state
