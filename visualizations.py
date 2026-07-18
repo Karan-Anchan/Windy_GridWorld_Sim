@@ -1,70 +1,56 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import animation
+
 
 def running_mean(data, window_size):
-    
-    """
-    Compute the running mean of a 1D array.
-
-    Args:
-        data (list): Input data.
-        window_size (int): Window size for the running mean.
-
-    Returns:
-        list: Running mean of the input data.
-    """
-    
     return np.convolve(data, np.ones(window_size) / window_size, mode='valid')
 
-def plot_running_average(q_learning_rewards, sarsa_rewards, expected_sarsa_rewards, window_size=100):
-    
-    """
-    Plot the running average of cumulative rewards for Q-learning, SARSA, and Expected SARSA.
 
-    Args:
-        q_learning_rewards (list): Cumulative rewards for Q-learning.
-        sarsa_rewards (list): Cumulative rewards for SARSA.
-        expected_sarsa_rewards (list): Cumulative rewards for Expected SARSA.
-        window_size (int): Window size for computing the running average.
-    """
-    
-    q_learning_running_avg = running_mean(q_learning_rewards, window_size)
-    sarsa_running_avg = running_mean(sarsa_rewards, window_size)
-    expected_sarsa_running_avg = running_mean(expected_sarsa_rewards, window_size)
-
-    plt.figure(figsize=(12, 6))
-    plt.plot(q_learning_running_avg, label='Q-learning')
-    plt.plot(sarsa_running_avg, label='SARSA')
-    plt.plot(expected_sarsa_running_avg, label='Expected SARSA')
+def plot_learning_curves(results, window_size=10, filename=None):
+    """Plot running-average cumulative reward per episode for each control method."""
+    plt.figure(figsize=(10, 5))
+    for label, rewards in results.items():
+        plt.plot(running_mean(rewards, window_size), label=label, lw=1.5)
     plt.xlabel('Episode')
-    plt.ylabel('Running Average Cumulative Reward')
-    plt.title(f'Q-learning vs SARSA vs Expected SARSA: Running Average (Window Size = {window_size})')
+    plt.ylabel(f'Cumulative reward ({window_size}-episode running avg)')
+    plt.title('Windy Gridworld — TD control methods')
     plt.legend()
-    plt.grid(True)
-    plt.savefig('q_learning_vs_sarsa_vs_expected_sarsa_running_avg.png')
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    if filename:
+        plt.savefig(filename, dpi=110)
     plt.show()
-    
-def plot_zoomed_rewards(q_learning_rewards, sarsa_rewards, expected_sarsa_rewards, zoom_start, zoom_end):
-    
-    """
-    Plot the zoomed average cumulative rewards for Q-learning, SARSA, and Expected SARSA over episodes.
 
-    Args:
-        q_learning_rewards (list): Average cumulative rewards for Q-learning.
-        sarsa_rewards (list): Average cumulative rewards for SARSA.
-        expected_sarsa_rewards (list): Average cumulative rewards for Expected SARSA.
-        zoom_start (int): Start episode for zooming.
-        zoom_end (int): End episode for zooming.
-    """
-    
-    plt.figure(figsize=(12, 6))
-    plt.plot(range(zoom_start, zoom_end), q_learning_rewards[zoom_start:zoom_end], label='Q-learning')
-    plt.plot(range(zoom_start, zoom_end), sarsa_rewards[zoom_start:zoom_end], label='SARSA')
-    plt.plot(range(zoom_start, zoom_end), expected_sarsa_rewards[zoom_start:zoom_end], label='Expected SARSA')
-    plt.xlabel('Episode')
-    plt.ylabel('Average Cumulative Reward')
-    plt.title(f'Q-learning vs SARSA vs Expected SARSA: Average Cumulative Rewards (Episodes {zoom_start}-{zoom_end})')
-    plt.legend()
-    plt.grid(True)
-    plt.savefig('zoomed_q_learning_vs_sarsa_vs_expected_sarsa_rewards.png')
-    plt.show()
+
+def animate_greedy_path(env, Q, filename=None, max_steps=60):
+    """Follow the greedy policy from start to goal and animate the path over the wind field."""
+    path, state = [env.start_state], env.start_state
+    for _ in range(max_steps):
+        if state == env.goal_state:
+            break
+        state, _ = env.step(state, max(Q[state], key=Q[state].get))
+        path.append(state)
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.imshow(np.tile(env.wind, (env.height, 1)).astype(float), cmap='Blues', alpha=0.7)
+    ax.text(*env.start_state, 'S', ha='center', va='center', color='k', fontweight='bold')
+    ax.text(*env.goal_state, 'G', ha='center', va='center', color='green', fontweight='bold')
+    for x in range(env.width):
+        ax.text(x, env.height - 0.35, str(env.wind[x]), ha='center', va='center', color='navy', fontsize=8)
+    ax.set_xticks(range(env.width))
+    ax.set_yticks(range(env.height))
+    ax.set_title("Learned greedy path (wind strength shaded / labelled)")
+    dot, = ax.plot([], [], 'o', color='crimson', ms=14)
+    trail, = ax.plot([], [], '-', color='crimson', lw=2, alpha=0.6)
+
+    def update(i):
+        dot.set_data([path[i][0]], [path[i][1]])
+        trail.set_data([p[0] for p in path[:i + 1]], [p[1] for p in path[:i + 1]])
+        return dot, trail
+
+    anim = animation.FuncAnimation(fig, update, frames=len(path), interval=300)
+    if filename:
+        anim.save(filename, writer=animation.PillowWriter(fps=3))
+    plt.close()
+    return len(path) - 1

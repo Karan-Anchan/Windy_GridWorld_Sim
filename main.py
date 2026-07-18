@@ -1,29 +1,26 @@
+import os
+
 from windy_gridworld import WindyGridworld
-from algorithms import q_learning, sarsa, expected_sarsa
-from visualizations import plot_running_average, plot_zoomed_rewards
+from algorithms import q_learning, sarsa, expected_sarsa, train_q_table
+from visualizations import plot_learning_curves, animate_greedy_path
+
 
 def main():
-    
-    # Define the windy gridworld environment
-    width, height = 10, 7
     wind = [0, 0, 0, 1, 1, 1, 2, 2, 1, 0]
-    start_state = (0, 3)
-    goal_state = (7, 3)
+    env = WindyGridworld(10, 7, wind, start_state=(0, 3), goal_state=(7, 3))
 
-    env = WindyGridworld(width, height, wind, start_state, goal_state)
+    episodes, trials = 500, 300
+    results = {
+        'Q-learning': q_learning(env, episodes=episodes, trials=trials),
+        'SARSA': sarsa(env, episodes=episodes, trials=trials),
+        'Expected SARSA': expected_sarsa(env, episodes=episodes, trials=trials),
+    }
 
-    # Run Q-learning, SARSA, and Expected SARSA algorithms
-    q_learning_rewards = q_learning(env, episodes=550, trials=1000)
-    sarsa_rewards = sarsa(env, episodes=550, trials=1000)
-    expected_sarsa_rewards = expected_sarsa(env, episodes=550, trials=1000)
+    os.makedirs("images", exist_ok=True)
+    plot_learning_curves(results, filename="images/learning_curves.png")
+    steps = animate_greedy_path(env, train_q_table(env), filename="images/agent_path.gif")
+    print(f"greedy path reaches the goal in {steps} steps")
 
-    # Visualize the running average of cumulative rewards
-    plot_running_average(q_learning_rewards, sarsa_rewards, expected_sarsa_rewards)
-
-    # Zoom in on the area where Q-learning shows superiority over SARSA and Expected SARSA
-    zoom_start = 350
-    zoom_end = 550
-    plot_zoomed_rewards(q_learning_rewards, sarsa_rewards, expected_sarsa_rewards, zoom_start, zoom_end)
 
 if __name__ == "__main__":
     main()

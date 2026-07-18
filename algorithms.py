@@ -1,152 +1,80 @@
 import numpy as np
 
-def q_learning(env, alpha=0.1, gamma=0.99, epsilon=0.1, episodes=500, trials=10):
-    
-    """
-    Q-learning algorithm with multiple trials for averaging.
-    
-    Args:
-        env (WindyGridworld): The Windy Gridworld environment.
-        alpha (float): Learning rate.
-        gamma (float): Discount factor.
-        epsilon (float): Exploration rate.
-        episodes (int): Number of episodes.
-        trials (int): Number of trials to average results.
-    
-    Returns:
-        avg_rewards (list): Average cumulative rewards per episode over trials.
-    """
-    
-    all_rewards = np.zeros((trials, episodes))
-    
-    for t in range(trials):
-        Q = {}
-        for x in range(env.width):
-            for y in range(env.height):
-                Q[(x, y)] = {a: 0 for a in env.actions}
 
+def _fresh_Q(env):
+    return {(x, y): {a: 0 for a in env.actions} for x in range(env.width) for y in range(env.height)}
+
+
+def _greedy(Q, state):
+    return max(Q[state], key=Q[state].get)
+
+
+def q_learning(env, alpha=0.1, gamma=0.99, epsilon=0.1, episodes=500, trials=10):
+    """Off-policy TD control; returns mean cumulative reward per episode over trials."""
+    all_rewards = np.zeros((trials, episodes))
+    for t in range(trials):
+        Q = _fresh_Q(env)
         for e in range(episodes):
             state = env.reset()
             total_reward = 0
-
             while state != env.goal_state:
-                if np.random.rand() < epsilon:
-                    action = np.random.choice(env.actions)
-                else:
-                    action = max(Q[state], key=Q[state].get)
-
+                action = np.random.choice(env.actions) if np.random.rand() < epsilon else _greedy(Q, state)
                 next_state, reward = env.step(state, action)
                 total_reward += reward
-
-                best_next_action = max(Q[next_state], key=Q[next_state].get)
-                Q[state][action] += alpha * (reward + gamma * Q[next_state][best_next_action] - Q[state][action])
-
+                Q[state][action] += alpha * (reward + gamma * Q[next_state][_greedy(Q, next_state)] - Q[state][action])
                 state = next_state
-
             all_rewards[t, e] = total_reward
-    
-    avg_rewards = np.mean(all_rewards, axis=0)
-    
-    return avg_rewards
+    return np.mean(all_rewards, axis=0)
+
 
 def sarsa(env, alpha=0.1, gamma=0.99, epsilon=0.1, episodes=500, trials=10):
-    
-    """
-    SARSA algorithm with multiple trials for averaging.
-    
-    Args:
-        env (WindyGridworld): The Windy Gridworld environment.
-        alpha (float): Learning rate.
-        gamma (float): Discount factor.
-        epsilon (float): Exploration rate.
-        episodes (int): Number of episodes.
-        trials (int): Number of trials to average results.
-    
-    Returns:
-        avg_rewards (list): Average cumulative rewards per episode over trials.
-    """
-    
+    """On-policy TD control; returns mean cumulative reward per episode over trials."""
     all_rewards = np.zeros((trials, episodes))
-    
     for t in range(trials):
-        Q = {}
-        for x in range(env.width):
-            for y in range(env.height):
-                Q[(x, y)] = {a: 0 for a in env.actions}
-
+        Q = _fresh_Q(env)
         for e in range(episodes):
             state = env.reset()
-            if np.random.rand() < epsilon:
-                action = np.random.choice(env.actions)
-            else:
-                action = max(Q[state], key=Q[state].get)
+            action = np.random.choice(env.actions) if np.random.rand() < epsilon else _greedy(Q, state)
             total_reward = 0
-
             while state != env.goal_state:
                 next_state, reward = env.step(state, action)
                 total_reward += reward
-
-                if np.random.rand() < epsilon:
-                    next_action = np.random.choice(env.actions)
-                else:
-                    next_action = max(Q[next_state], key=Q[next_state].get)
-
+                next_action = np.random.choice(env.actions) if np.random.rand() < epsilon else _greedy(Q, next_state)
                 Q[state][action] += alpha * (reward + gamma * Q[next_state][next_action] - Q[state][action])
-
                 state, action = next_state, next_action
-
             all_rewards[t, e] = total_reward
-    
-    avg_rewards = np.mean(all_rewards, axis=0)
-    
-    return avg_rewards
+    return np.mean(all_rewards, axis=0)
+
 
 def expected_sarsa(env, alpha=0.1, gamma=0.99, epsilon=0.1, episodes=500, trials=10):
-    
-    """
-    Expected SARSA algorithm with multiple trials for averaging.
-    
-    Args:
-        env (WindyGridworld): The Windy Gridworld environment.
-        alpha (float): Learning rate.
-        gamma (float): Discount factor.
-        epsilon (float): Exploration rate.
-        episodes (int): Number of episodes.
-        trials (int): Number of trials to average results.
-    
-    Returns:
-        avg_rewards (list): Average cumulative rewards per episode over trials.
-    """
-    
+    """TD control backing up the ε-greedy expectation; returns mean reward per episode over trials."""
+    n = len(env.actions)
     all_rewards = np.zeros((trials, episodes))
-    
     for t in range(trials):
-        Q = {}
-        for x in range(env.width):
-            for y in range(env.height):
-                Q[(x, y)] = {a: 0 for a in env.actions}
-
+        Q = _fresh_Q(env)
         for e in range(episodes):
             state = env.reset()
             total_reward = 0
-
             while state != env.goal_state:
-                if np.random.rand() < epsilon:
-                    action = np.random.choice(env.actions)
-                else:
-                    action = max(Q[state], key=Q[state].get)
-
+                action = np.random.choice(env.actions) if np.random.rand() < epsilon else _greedy(Q, state)
                 next_state, reward = env.step(state, action)
                 total_reward += reward
-
-                expected_value = sum([Q[next_state][a] * (epsilon / len(env.actions) + (1 - epsilon) * (a == max(Q[next_state], key=Q[next_state].get)))
-                                      for a in env.actions])
-                
-                Q[state][action] += alpha * (reward + gamma * expected_value - Q[state][action])
-
+                best = _greedy(Q, next_state)
+                expected = sum(Q[next_state][a] * (epsilon / n + (1 - epsilon) * (a == best)) for a in env.actions)
+                Q[state][action] += alpha * (reward + gamma * expected - Q[state][action])
                 state = next_state
-
             all_rewards[t, e] = total_reward
-    
-    avg_rewards = np.mean(all_rewards, axis=0)
-    return avg_rewards
+    return np.mean(all_rewards, axis=0)
+
+
+def train_q_table(env, alpha=0.5, gamma=1.0, epsilon=0.1, episodes=400):
+    """Train a single Q-learning agent and return its Q-table (for greedy-path extraction)."""
+    Q = _fresh_Q(env)
+    for _ in range(episodes):
+        state = env.reset()
+        while state != env.goal_state:
+            action = np.random.choice(env.actions) if np.random.rand() < epsilon else _greedy(Q, state)
+            next_state, reward = env.step(state, action)
+            Q[state][action] += alpha * (reward + gamma * max(Q[next_state].values()) - Q[state][action])
+            state = next_state
+    return Q
