@@ -13,7 +13,7 @@
 
 ---
 
-The **windy gridworld** from Sutton & Barto (Example 6.5): a 10×7 grid where a per-column crosswind pushes the agent upward, so the shortest path to the goal has to lean into the wind. The agent gets **−1 per step** until it reaches the goal at `(7, 3)` from the start at `(0, 3)`. Three tabular temporal-difference control methods are implemented from scratch and compared:
+This is the **windy gridworld** from Sutton & Barto (Example 6.5), a 10×7 grid with a column-dependent wind that pushes the agent upward. The agent starts at `(0, 3)`, receives **−1 per step**, and stops when it reaches `(7, 3)`. The repository compares three tabular temporal-difference control methods:
 
 | Method | Backup target | On/off-policy |
 | :--- | :--- | :---: |
@@ -29,8 +29,8 @@ The **windy gridworld** from Sutton & Barto (Example 6.5): a 10×7 grid where a 
 <img src="images/agent_path.gif" width="44%" alt="Trained agent walking the windy grid to the goal"/>
 </p>
 
-- **All three converge to a near-optimal policy** — the learned greedy path reaches the goal in **17 steps**, steering above the goal row so the wind carries the agent back down onto it.
-- **Q-learning edges ahead on cumulative reward**, with Expected SARSA the smoothest of the three (lower-variance backup). Curves are averaged over 300 independent runs.
+- All three methods learn a near-optimal policy. The greedy path reaches the goal in **17 steps** by moving above the goal row and accounting for the wind.
+- Q-learning has the highest cumulative reward. Expected SARSA produces the smoothest curve because its backup has lower variance. The curves are averaged over 300 independent runs.
 
 ## Reproduce
 
@@ -52,10 +52,10 @@ main.py             train the three methods and render the figures
 
 ## Limitations
 
-Standard four-move variant only — no king's-move (diagonal) actions or stochastic wind, both of which are the usual follow-up exercises. Fixed ε and α (no decay), so the averaged curves settle a little below the deterministic optimum.
+The environment uses the standard four actions. It does not include diagonal moves or stochastic wind. Both ε and α remain fixed, so the averaged curves settle slightly below the deterministic optimum.
 
 ## References
 
 Sutton & Barto, *Reinforcement Learning: An Introduction* (2nd ed.), Example 6.5 · [book](http://incompleteideas.net/book/the-book.html)
 
-MIT — see [`LICENSE`](LICENSE).
+MIT. See [`LICENSE`](LICENSE).
